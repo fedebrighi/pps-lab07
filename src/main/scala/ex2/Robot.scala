@@ -42,7 +42,7 @@ class LoggingRobot(val robot: Robot) extends Robot:
     robot.act()
     println(robot.toString)
 
-class RobotWithBattery(val robot: Robot, var batteryLevel: Int, val turnCost: Int, val actCost: Int) extends Robot:
+class RobotWithBattery(val robot: SimpleRobot, var batteryLevel: Int, val turnCost: Int, val actCost: Int) extends Robot:
   export robot.{position, direction}
   override def turn(dir: Direction): Unit =
     if batteryLevel >= turnCost then
@@ -53,6 +53,8 @@ class RobotWithBattery(val robot: Robot, var batteryLevel: Int, val turnCost: In
     if batteryLevel >= actCost then
       robot.act()
       batteryLevel -= actCost
+
+import ex2.Direction.East
 
 import scala.util.Random
 class RobotCanFail(val robot: Robot, val failingProbability: Double) extends Robot:
@@ -65,6 +67,7 @@ class RobotCanFail(val robot: Robot, val failingProbability: Double) extends Rob
   override def act(): Unit =
     if !shouldFail() then
       robot.act()
+  override def toString: String = robot.toString
 
 class RobotRepeated(val robot: Robot, var repetitions: Int) extends Robot:
   export robot.{position, direction}
@@ -74,12 +77,36 @@ class RobotRepeated(val robot: Robot, var repetitions: Int) extends Robot:
   override def act(): Unit =
     for i <- 1 to repetitions do
       robot.act()
-
+  override def toString: String = robot.toString
 
 
 @main def testRobot(): Unit =
-  val robot = LoggingRobot(SimpleRobot((0, 0), Direction.North))
-  robot.act() // robot at (0, 1) facing North
-  robot.turn(robot.direction.turnRight) // robot at (0, 1) facing East
-  robot.act() // robot at (1, 1) facing East
-  robot.act() // robot at (2, 1) facing East
+  val batteryRobot = RobotWithBattery(SimpleRobot((0, 0), Direction.North), batteryLevel = 5, turnCost = 2, actCost = 1)
+  println(s"1: ${batteryRobot.robot}, Battery Level: ${batteryRobot.batteryLevel}")
+  batteryRobot.act()
+  println(s"2: ${batteryRobot.robot}, Battery Level: ${batteryRobot.batteryLevel}")
+  batteryRobot.turn(batteryRobot.direction.turnRight)
+  println(s"3: ${batteryRobot.robot}, Battery Level: ${batteryRobot.batteryLevel}")
+  batteryRobot.turn(batteryRobot.direction.turnRight)
+  println(s"4: ${batteryRobot.robot}, Battery Level: ${batteryRobot.batteryLevel}")
+  batteryRobot.act()
+  println(s"5: ${batteryRobot.robot}, Battery Level: ${batteryRobot.batteryLevel}")
+
+  println("\n")
+  val robotCanFail = RobotCanFail(SimpleRobot((0,0), Direction.North), failingProbability = 0.8)
+  for _ <- 1 to 5 do
+    robotCanFail.act()
+    println(s"${robotCanFail.robot.toString}")
+
+  println("\n")
+  val repeatedRobot = RobotRepeated(SimpleRobot((0, 0), Direction.North), repetitions = 2)
+  println(s"1: ${repeatedRobot.robot}")
+  repeatedRobot.act()
+  println(s"2: ${repeatedRobot.robot}")
+  repeatedRobot.turn(repeatedRobot.direction.turnRight)
+  println(s"3: ${repeatedRobot.robot}")
+  repeatedRobot.turn(repeatedRobot.direction.turnRight)
+  println(s"4: ${repeatedRobot.robot}")
+  repeatedRobot.act()
+  println(s"5: ${repeatedRobot.robot}")
+
